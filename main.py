@@ -17,6 +17,13 @@ life = 3
 
 bullets = sprite.Group()
 
+
+font.init()
+font1 = font.Font(None, 80)
+win = font1.render("YOU WIN!", True, (255,255,255))
+lose = font1.render("You lose :(", True, (180, 0, 0))
+font2 = font.Font(None, 36)
+
 class GameSprite(sprite.Sprite):
     def __init__(self, player_image, x, y, w, h, speed):
         super().__init__()
@@ -81,5 +88,31 @@ while game:
         bullets.draw(window)
         monsters.update()
         monsters.draw(window)
+
+        if sprite.spritecollide(player, monsters, False):
+            sprite.spritecollide(player, monsters, True)
+            life -= 1
+        collides = sprite.groupcollide(bullets, monsters, True, True)
+        for c in collides:
+            score += 1
+            monster = Enemy("противник.png", randint(80, WINDOW_SIZE[0] - 80), -40, 75, 75, randint(1,3))
+            monsters.add(monster)
+
+        text_win = font2.render("Рахунок: " + str(score), 1, (255, 255, 255))
+        window.blit(text_win, (10, 20))
+
+        text_lose = font2.render("Пропущено: " + str(lost), 1, (255, 255, 255))
+        window.blit(text_lose, (10, 50))
+
+        if life == 3:
+            life_color = (0, 150, 0)
+        if life == 2:
+            life_color = (150, 150, 0)
+        if life == 1:
+            life_color = (150, 0, 0)
+
+        text_life = font1.render(str(life), 1, life_color)
+        window.blit(text_life, (650, 10))
+
     clock.tick(FPS)
     display.update()

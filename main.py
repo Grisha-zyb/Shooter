@@ -15,6 +15,8 @@ lost = 0
 max_lost = 5
 life = 3
 
+bullets = sprite.Group()
+
 class GameSprite(sprite.Sprite):
     def __init__(self, player_image, x, y, w, h, speed):
         super().__init__()
@@ -36,6 +38,10 @@ class Player(GameSprite):
         if keys [K_d] and self.rect.x < WINDOW_SIZE[0] - self.rect.width:
             self.rect.x += self.speed
 
+    def fire(self):
+        bullet = Bullet("куля.png", self.rect.centerx, self.rect.top, 20, 25, 15)
+        bullets.add(bullet)
+
 player = Player("хмарка.png", WINDOW_SIZE[0] / 2, WINDOW_SIZE[1] - 125, 250, 85, 5)
 
 class Enemy(GameSprite):
@@ -46,6 +52,12 @@ class Enemy(GameSprite):
             self.rect.x = randint(80, WINDOW_SIZE[0] - 80)
             self.rect.y = 0
             lost += 1
+
+class Bullet(GameSprite):
+    def update(self):
+        self.rect.y -= self.speed
+        if self.rect.y < 0:
+            self.kill()
 
 monsters = sprite.Group()
 for i in range(1,6):
@@ -58,10 +70,15 @@ while game:
     for e in event.get():
         if e.type == QUIT:
             game = False
+        elif e.type == KEYDOWN:
+            if e.key == K_SPACE:
+                player.fire()
     if not finish:
         window.blit(background, (0, 0))
         player.update()
         player.draw()
+        bullets.update()
+        bullets.draw(window)
         monsters.update()
         monsters.draw(window)
     clock.tick(FPS)

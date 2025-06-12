@@ -114,5 +114,18 @@ while game:
         text_life = font1.render(str(life), 1, life_color)
         window.blit(text_life, (650, 10))
 
+        if score >= goal:
+            print("Ти виграв!")
+            finish =  True
+            window.blit(win, ((WINDOW_SIZE[0] - win.get_width()) / 2, WINDOW_SIZE[1] / 2))
+        if life <= 0:
+            print("Ти програв:(")
+            finish =  True
+            window.blit(lose, ((WINDOW_SIZE[0] - win.get_width()) / 2, WINDOW_SIZE[1] / 2))
+        if lost >= max_lost:
+            print("Ти програв:(")
+            finish =  True
+            window.blit(lose, ((WINDOW_SIZE[0] - win.get_width()) / 2, WINDOW_SIZE[1] / 2))
+
     clock.tick(FPS)
     display.update()

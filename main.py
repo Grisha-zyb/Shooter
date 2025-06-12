@@ -1,5 +1,6 @@
 from pygame import *
 from random import randint
+from time import time as timer
 
 WINDOW_SIZE = (1280,720)
 window = display.set_mode(WINDOW_SIZE)
@@ -14,13 +15,15 @@ goal = 15
 lost = 0
 max_lost = 5
 life = 3
+rel_time = False
+num_fire = 0
 
 bullets = sprite.Group()
 
 
 font.init()
 font1 = font.Font(None, 80)
-win = font1.render("YOU WIN!", True, (255,255,255))
+win = font1.render("YOU WIN!", True, (0, 255, 0))
 lose = font1.render("You lose :(", True, (180, 0, 0))
 font2 = font.Font(None, 36)
 
@@ -52,19 +55,27 @@ class Player(GameSprite):
 player = Player("хмарка.png", WINDOW_SIZE[0] / 2, WINDOW_SIZE[1] - 125, 250, 85, 5)
 
 class Enemy(GameSprite):
+    def __init__(self, player_image, x, y, w, h, speed, lost_size=1):
+        super().__init__(player_image, x, y, w, h, speed)
+        self.lost_size = lost_size
     def update(self):
         self.rect.y += self.speed
         global lost
         if self.rect.y > WINDOW_SIZE[1]:
             self.rect.x = randint(80, WINDOW_SIZE[0] - 80)
             self.rect.y = 0
-            lost += 1
+            lost += self.lost_size
 
 class Bullet(GameSprite):
     def update(self):
         self.rect.y -= self.speed
         if self.rect.y < 0:
             self.kill()
+
+corals = sprite.Group()
+for i in range(1,4):
+    coral = Enemy("камінь.png", randint(80, WINDOW_SIZE[0] - 80), -40, 75, 75, randint(1,3), 0)
+    corals.add(coral)
 
 monsters = sprite.Group()
 for i in range(1,6):
@@ -79,7 +90,13 @@ while game:
             game = False
         elif e.type == KEYDOWN:
             if e.key == K_SPACE:
-                player.fire()
+                if num_fire < 6 and rel_time == False:
+                    num_fire = num_fire + 1
+                    player.fire()
+
+                if num_fire >= 6 and rel_time == False:
+                    last_time = timer()
+                    rel_time = True
     if not finish:
         window.blit(background, (0, 0))
         player.update()
@@ -88,15 +105,31 @@ while game:
         bullets.draw(window)
         monsters.update()
         monsters.draw(window)
+        corals.update()
+        corals.draw(window)
 
-        if sprite.spritecollide(player, monsters, False):
+        if rel_time == True:
+            now_time = timer()
+
+            if now_time - last_time < 2:
+                reload = font2.render('Wait, reload...', 1, (150, 0, 0))
+                window.blit(reload, ((WINDOW_SIZE[0] - win.get_width()) / 2, 690))
+            else: 
+                num_fire = 0
+                rel_time = False
+
+
+        if sprite.spritecollide(player, monsters, False) or sprite.spritecollide(player, corals, False):
             sprite.spritecollide(player, monsters, True)
+            sprite.spritecollide(player, corals, True)
             life -= 1
         collides = sprite.groupcollide(bullets, monsters, True, True)
         for c in collides:
             score += 1
             monster = Enemy("противник.png", randint(80, WINDOW_SIZE[0] - 80), -40, 75, 75, randint(1,3))
             monsters.add(monster)
+
+        collides_coral = sprite.groupcollide(bullets, corals, True, False)
 
         text_win = font2.render("Рахунок: " + str(score), 1, (255, 255, 255))
         window.blit(text_win, (10, 20))
